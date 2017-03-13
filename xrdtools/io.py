@@ -26,7 +26,7 @@ def validate_xrdml_schema(filename):
         the file was not matching any provided xml schema.
 
     """
-    schemas = [(1.5, 'data/schemas/XRDMeasurement15.xsd'),
+    schemas = [(1.5, 'data/schemas/XRDMeasurement1.xsd'),
                (1.4, 'data/schemas/XRDMeasurement14.xsd'),
                (1.3, 'data/schemas/XRDMeasurement13.xsd'),
                (1.2, 'data/schemas/XRDMeasurement12.xsd'),
@@ -115,7 +115,7 @@ def _sort_data(k, uid_scans, data):
         # append data to the completed data keys
         if data['measType'] == 'Scan' or scan['status'] == 'Completed':
             data['scannb'].append(k)
-            for key in ['data', 'time', '2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z']:
+            for key in ['data', 'time', '2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z']:
                 data = _append2arr(data, scan, key)
         # append data to the incompleted data keys
         # TODO: check if the following code actually works?!
@@ -127,8 +127,8 @@ def _sort_data(k, uid_scans, data):
             data['iOmega'].append(scan['Omega'])
             if 'Phi' in scan.keys():
                 data['iPhi'].append(scan['Phi'])
-            if 'Psi' in scan.keys():
-                data['iPsi'].append(scan['Psi'])
+            if 'Chi' in scan.keys():
+                data['iChi'].append(scan['Chi'])
             if 'X' in scan.keys():
                 data['iX'].append(scan['X'])
             if 'Y' in scan.keys():
@@ -223,7 +223,7 @@ def _get_scan_data(uid_scans, scannb, namespace=None):
     n = len(scan_data['data'])  # nb of data points
     for pos in uid_pos:
         info = _read_axis_info(pos, n)
-        if info['axis'] in ['2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z']:
+        if info['axis'] in ['2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z']:
             scan_data[info['axis']] = info['data']
         else:
             print('axis type not supported')
@@ -339,8 +339,8 @@ def read_xrdml(filename):
         data['scanAxis'] = uid_scans[0].get('scanAxis')
 
     # get scans
-    for key in ['scannb', 'data', 'time', '2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z',
-                'iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iPsi', 'iX', 'iY', 'iZ']:
+    for key in ['scannb', 'data', 'time', '2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z',
+                'iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iChi', 'iX', 'iY', 'iZ']:
         data[key] = []
 
     for k in range(nb_scans):
@@ -348,7 +348,7 @@ def read_xrdml(filename):
         if scan:
             if data['measType'] == 'Scan' or scan['status'] == 'Completed':
                 data['scannb'].append(k)
-                for key in ['data', 'time', '2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z']:
+                for key in ['data', 'time', '2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z']:
                     data = _append2arr(data, scan, key)
             # TODO: check if this code actually works?!
             else:
@@ -359,8 +359,8 @@ def read_xrdml(filename):
                 data['iOmega'].append(scan['Omega'])
                 if 'Phi' in scan.keys():
                     data['iPhi'].append(scan['Phi'])
-                if 'Psi' in scan.keys():
-                    data['iPsi'].append(scan['Psi'])
+                if 'Chi' in scan.keys():
+                    data['iChi'].append(scan['Chi'])
                 if 'X' in scan.keys():
                     data['iX'].append(scan['X'])
                 if 'Y' in scan.keys():
@@ -373,16 +373,16 @@ def read_xrdml(filename):
     if data['scannb'] == [] and len(data['iscannb']) == 1:
         logger.debug('One and only incomplete scan found in the data. This scan is considered complete.')
 
-        for key, ikey in zip(['scannb', 'data', 'time', '2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z'],
-                             ['iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iPsi', 'iX', 'iY', 'iZ']):
+        for key, ikey in zip(['scannb', 'data', 'time', '2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z'],
+                             ['iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iChi', 'iX', 'iY', 'iZ']):
             if ikey in data.keys() and data[ikey]:
                 data[key] = data[ikey]
                 data[ikey] = []
 
     # remove redundant information
-    [data.pop(key) for key in ['Phi', 'Psi', 'X', 'Y', 'Z'] if data[key] == []]
+    [data.pop(key) for key in ['Phi', 'Chi', 'X', 'Y', 'Z'] if data[key] == []]
     if len(data['iscannb']) == 0:
-        for key in ['iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iPsi', 'iX', 'iY', 'iZ']:
+        for key in ['iscannb', 'idata', 'itime', 'i2Theta', 'iOmega', 'iPhi', 'iChi', 'iX', 'iY', 'iZ']:
             data.pop(key)
 
     data = _get_array_for_single_value(data, 'time')
@@ -392,7 +392,7 @@ def read_xrdml(filename):
         data = _get_array_for_single_value(data, 'Omega')
 
     if nb_scans > 1:
-        for key in ['Phi', 'Psi', 'X', 'Y', 'Z']:
+        for key in ['Phi', 'Chi', 'X', 'Y', 'Z']:
             data = _get_array_for_single_value(data, key)
 
     # in case of 'Repeated scan' sum all completed scans together and
@@ -403,7 +403,7 @@ def read_xrdml(filename):
             data['data'][0] += data['data'][k]
         data['data'] = data['data'][0] / len(data['scannb'])
         # reduce all possible axis
-        for key in ['2Theta', 'Omega', 'Phi', 'Psi', 'X', 'Y', 'Z']:
+        for key in ['2Theta', 'Omega', 'Phi', 'Chi', 'X', 'Y', 'Z']:
             data = _get_array_for_single_value(data, key)
         # set true time
         data['time'] *= len(data['scannb'])
@@ -445,7 +445,7 @@ def read_xrdml(filename):
                 data['xlabel'] = 'Omega'
                 if data['measType'] in ['Scan', 'Repeated scan']:
                     data['x'] = data['Omega']
-            elif data['scanAxis'] in ['Phi', 'Psi', 'X', 'Y', 'Z']:
+            elif data['scanAxis'] in ['Phi', 'Chi', 'X', 'Y', 'Z']:
                 data['xlable'] = data['scanAxis']
                 if data['measType'] == 'Scan':
                     data['x'] = data[data['scanAxis']]
@@ -457,7 +457,7 @@ def read_xrdml(filename):
             data['xunit'] = uid.get('unit', 'nd')
 
         if 'stepAxis' in data.keys():
-            if data['stepAxis'] in ['2Theta', '2Theta-Omega', 'Omega', 'Omega-2Theta', 'Phi', 'Psi', 'X', 'Y', 'Z']:
+            if data['stepAxis'] in ['2Theta', '2Theta-Omega', 'Omega', 'Omega-2Theta', 'Phi', 'Chi', 'X', 'Y', 'Z']:
                 data['ylabel'] = data['stepAxis']
             elif data['stepAxis'] == 'Gonio':
                 data['ylabel'] = '2Theta-Theta'

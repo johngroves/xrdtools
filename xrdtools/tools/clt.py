@@ -23,10 +23,10 @@ def xrdml():
     parser = ArgumentParser('Export measurement data for xrdml files.')
     parser.add_argument('filenames', metavar='filenames', type=str, nargs='+',
                         help='filenames for which to export the data')
-    parser.add_argument('-o', '--output', metavar='output', choices=['stdout', 'txt'],
-                        default='txt',
+    parser.add_argument('-o', '--output', metavar='output', choices=['stdout', 'txt','csv'],
+                        default='csv',
                         help='the format to which the data should be exported')
-    parser.add_argument('--delimiter', metavar='delimiter', type=str, default='\t',
+    parser.add_argument('--delimiter', metavar='delimiter', type=str, default=',',
                         help='define a delimiter')
     parser.add_argument('--fmt', metavar='fmt', type=str, default='%.18e',
                         help='define the output format')
@@ -55,6 +55,8 @@ def xrdml():
             file_out = filename.replace('.xrdml', '.txt')
         elif args.output == 'stdout':
             file_out = sys.stdout
+        elif args.output == 'csv':
+            file_out = filename.replace('.xrdml', '.csv')
 
         delimiter = args.delimiter.decode('string-escape')
         fmt = args.fmt
